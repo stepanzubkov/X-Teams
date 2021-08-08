@@ -12,3 +12,6 @@ app.config.from_pyfile('config.py')
 
 db.init_app(app)
 migrate.init_app(app,db)
+
+if __name__ == "__main__":
+    app.run(debug = True)
