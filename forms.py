@@ -38,3 +38,9 @@ class RegistrationForm(FlaskForm):
                                             ('Senior', 'Senior')
                                             ])
     submit = SubmitField('Зарегистрироваться')
+    
+class LoginForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired('Пустое поле'), Email(message='Неправильный email'), Length(min=4, max=100, message='Неверная длинна email')])
+    password = PasswordField('Пароль', validators=[DataRequired(message='Пустое поле'), Length(min=4, max=100, message='Неверная длинна пароля')])
+    remember = BooleanField('Запомнить меня')
+    submit = SubmitField('Войти')
