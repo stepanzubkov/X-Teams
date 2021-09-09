@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+{{ super() }}
+<h1>Регистрация</h1>
+<form action='/registration' method='post' class='registration'>
+    {{ form.hidden_tag() }}
+    {% for field in form if field.name not in ['csrf_token', 'submit'] %}
+        {% if field.errors %}
+            <p>{{ field(class='invalid', placeholder=field.label.text) }}
+                {{ field.errors[0] }}</p>
+        {% else %}
+            {% if field.name=='expirience' %}
+            <p>
+                    {% for subfield in field %}
+                    {{ subfield }}
+                    {{ subfield.label }}
+                    {% endfor %}
+                </p>
+            {% else %}
+                <p>{{ field(class='normal', placeholder=field.label.text) }}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+    <p>{{ form.submit() }}
+</form>
+{% endblock %}

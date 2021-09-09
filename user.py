@@ -15,3 +15,9 @@ class User(UserMixin):
             return str(self.user.id)
         else:
             return 'guest'
+        
+    def get_github(self):
+        if self.user is not None:
+            return self.user.github
+        else:
+            return 'guest'

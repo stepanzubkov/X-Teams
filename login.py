@@ -8,4 +8,4 @@ manager = LoginManager()
 
 @manager.user_loader
 def load_user(id):
-    return User().fromDB(id, Users)
+    return User().fromDB(int(id), Users)
