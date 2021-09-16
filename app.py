@@ -4,12 +4,15 @@ from flask_login import login_required, login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 # Импорты других библиотек
 import os
+from github3api import GitHubAPI
 
 # Импорты собственных файлов
-from db import db, migrate, Users, Groups, GroupsCombinations, Leaders, Stacks
-from forms import EditForm, RegistrationForm, LoginForm
+from db import db, migrate, Users, Teams, Members, Leaders, Stacks
+from forms import CreateGroup, EditForm, RegistrationForm, LoginForm
 from login import manager, load_user
 from user import User
+
+client = GitHubAPI()
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -31,36 +34,47 @@ def index():
 
 @app.route('/registration', methods=['GET', 'POST'])
 def registration():
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        for field in form:
-            print(field.name, field.data)
-        try:
-            user = Users(
-                name=form.name.data, email=form.email.data,
-                password=generate_password_hash(form.password.data),
-                specialization=form.specialization.data, expirience=form.expirience.data,
-                github=form.github_name.data
-            )
-            db.session.add(user)
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
-        user = Users.query.filter_by(email=form.email.data).first()
-        userlogin = User().create(user)
-        login_user(userlogin, remember=True)
+    if current_user.is_authenticated:
+        print(current_user)
         return redirect(url_for('profile', github_name=current_user.get_github()))
+    form = RegistrationForm()
+    emails = [user.email for user in Users.query.all()]
+    if form.validate_on_submit():
+        if form.email.data not in emails:
+            try:
+                user = Users(
+                    name=form.name.data, email=form.email.data,
+                    password=generate_password_hash(form.password.data),
+                    specialization=form.specialization.data, expirience=form.expirience.data,
+                    github=form.github_name.data
+                )
+                db.session.add(user)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+            user = Users.query.filter_by(email=form.email.data).first()
+            userlogin = User().create(user)
+            login_user(userlogin, remember=True)
+            return redirect(url_for('profile', github_name=current_user.get_github()))
+        else:
+            flash('Такой аккаунт уже существует', category='error')
     return render_template('registration.html', form=form, current_user=current_user)
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        print(current_user)
+        return redirect(url_for('profile', github_name=current_user.get_github()))
     form = LoginForm()
     if form.validate_on_submit():
         user = Users.query.filter_by(email=form.email.data).first()
         if user and check_password_hash(user.password, form.password.data):
             userlogin = User().create(user)
             login_user(userlogin, remember=form.remember.data)
+            return redirect(url_for('profile', github_name=current_user.get_github()))
+        else:
+            flash('Нет такого аккаунта', category='error')
     return render_template('login.html', form=form, current_user=current_user)
 
 @app.route('/user/<github_name>', methods=['GET'])
@@ -89,18 +103,19 @@ def logout():
 @login_required
 def edit():
     form = EditForm()
-    user = Users.query.get(int(current_user.get_id()))
+    user = Users.query.get(current_user.get_id())
     stack_text = ''
     for i in user.stack:
         stack_text += f'{i.name},'
-    print(stack_text)
     if form.validate_on_submit():
         try:
-            stack = Stacks.query.filter_by(user_id=int(current_user.get_id()))
+            stack = Stacks.query.filter_by(user_id=current_user.get_id())
             stack_names = [s.name for s in stack] if stack else []
             form_names = form.stack.data.split(',')
-            
-            
+            for name in form_names:
+                if name == '' or name == ' ':
+                    form_names.remove(name)
+
             user.name = form.name.data
             user.email = form.email.data
             user.expirience = form.expirience.data
@@ -112,12 +127,11 @@ def edit():
             if form.avatar.data:
                 user.avatar = request.files[form.avatar.name].read()
             if stack_names != form_names:
-                form_names.remove('')
                 for name in stack_names:
                     deleted = Stacks.query.filter_by(name=name).first()
                     db.session.delete(deleted)
                 for name in form_names:
-                    inserted = Stacks(name=name, user_id=int(current_user.get_id()))
+                    inserted = Stacks(name=name, user_id=current_user.get_id())
                     db.session.add(inserted)
             db.session.add(user)
             db.session.commit()
@@ -126,6 +140,31 @@ def edit():
             db.session.rollback()
         return redirect(url_for('profile', github_name=current_user.get_github()))
     return render_template('edit.html', form=form, current_user=current_user, user=user, stack_text=stack_text, getattr=getattr)
+
+@app.route('/creategroup', methods=['POST', 'GET'])
+def creategroup():
+    form = CreateGroup()
+    form.github.choices = choices=[(repo['full_name'], repo['name']) for repo in client.get(f'/users/{current_user.get_github()}/repos', _get='all', _attributes=['name', 'full_name'])]
+    if form.validate_on_submit():
+        try:
+            group = Teams(name=form.name.data, descripton=form.description.data, github=form.github.data, state='created')
+            
+            db.session.add(group)
+            db.session.commit()
+            
+            group_id = Teams.query.filter_by(name=group.name).first().id
+            
+            leader = Leaders(team_id=group_id, leader_id=current_user.get_id())
+            member = Members(team_id=group_id, member_id=current_user.get_id())
+            
+            db.session.add_all([leader, member])
+            db.session.commit()
+            
+            redirect(url_for('index'))
+        except:
+            db.session.rollback()
+
+    return render_template('creategroup.html', current_user=current_user, form=form)
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -2,6 +2,9 @@
 {% block content %}
 {{ super() }}
 <h1>Регистрация</h1>
+{% for cat,msg in get_flashed_messages(True) %}
+    <p class='{{cat}}'>{{msg}}</p>
+{% endfor %}
 <form action='/registration' method='post' class='registration'>
     {{ form.hidden_tag() }}
     {% for field in form if field.name not in ['csrf_token', 'submit'] %}

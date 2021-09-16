@@ -1,10 +1,10 @@
 from flask_wtf import FlaskForm
+from flask_login import current_user
 from flask import request
 from wtforms import StringField, SubmitField, BooleanField, TextAreaField, FileField, PasswordField, SelectField, RadioField, ValidationError
 from wtforms.validators import DataRequired, Email, Length, NoneOf
 
 from requests import get
-
 
 class Github(object):
     def __init__(self, message=None):
@@ -88,3 +88,9 @@ class EditForm(FlaskForm):
     ])
     stack = StringField('Стек (разделяя запятой)', validators=[Length(min=0, max=100, message='Неправильная длинна стека')])
     submit = SubmitField('Зарегистрироваться')
+    
+class CreateGroup(FlaskForm):
+    name = StringField('Название', validators=[DataRequired('Пустое поле'), Length(min=0, max=150, message='Неверная длинна названия')])
+    description = TextAreaField('Описание группы', validators=[DataRequired('Пустое поле')])
+    github = SelectField('Репозиторий')
+    submit = SubmitField('Создать')

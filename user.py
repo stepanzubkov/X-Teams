@@ -12,7 +12,7 @@ class User(UserMixin):
 
     def get_id(self):
         if self.user is not None:
-            return str(self.user.id)
+            return self.user.id
         else:
             return 'guest'
         
