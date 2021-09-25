@@ -4,7 +4,7 @@
 <head>
     <meta charset='utf-8'>
     <meta name='viewport' content='width=device-width initial-scale=1.0'>
-    <link rel='shortcut icon' href='icon.png' type='image/x-icon'>
+    <link rel='shortcut icon' href='{{url_for("static", filename="images/x-t.png")}}' type='image/x-icon'>
     <title>X-Teams</title>
 </head>
 
@@ -13,7 +13,7 @@
         <a href="/">Главная</a>
         {% if current_user.is_authenticated %}
             <a href="/user/{{current_user.get_github()}}">Профиль</a>
-            <a href="/creategroup">Создать группу</a>
+            <a href="/createteam">Создать группу</a>
         {% else %}
             <a href="/registration">Регистрация</a>
             <a href="/login">Авторизация</a>

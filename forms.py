@@ -6,6 +6,7 @@ from wtforms.validators import DataRequired, Email, Length, NoneOf
 
 from requests import get
 
+
 class Github(object):
     def __init__(self, message=None):
         if not message:
@@ -20,7 +21,8 @@ class Github(object):
         status = get(URL, headers=HEADERS).status_code
         if status == 404:
             raise ValidationError(self.message)
-        
+
+
 class Extensions(object):
     def __init__(self, message=None, ext=[]):
         if not message:
@@ -37,20 +39,28 @@ class Extensions(object):
 
 
 class RegistrationForm(FlaskForm):
-    name = StringField('Имя', validators=[DataRequired('Пустое поле'), Length(min=4, max=100, message='Неверная длинна имени')])
-    github_name = StringField('Имя на github', validators=[DataRequired('Пустое поле'), Length(min=4, max=100, message='Неверная длинна имени'), Github()])
-    email = StringField('Email', validators=[DataRequired('Пустое поле'), Email(message='Неправильный email'), Length(min=4, max=100, message='Неверная длинна email')])
-    password = PasswordField('Пароль', validators=[DataRequired(message='Пустое поле'), Length(min=4, max=100, message='Неверная длинна пароля')])
+    name = StringField('Имя', validators=[DataRequired('Пустое поле'), Length(
+        min=4, max=100, message='Неверная длинна имени')])
+    github = StringField('Имя на github', validators=[DataRequired(
+        'Пустое поле'), Length(min=4, max=100, message='Неверная длинна имени'), Github()])
+    email = StringField('Email', validators=[DataRequired('Пустое поле'), Email(
+        message='Неправильный email'), Length(min=4, max=100, message='Неверная длинна email')])
+    password = PasswordField('Пароль', validators=[DataRequired(
+        message='Пустое поле'), Length(min=4, max=100, message='Неверная длинна пароля')])
     specialization = SelectField('Специализация', choices=[
-                                                            ('Backend', '-- Специализация --'),
-                                                            ('Backend', 'Backend'),
-                                                            ('Frontend', 'Frontend'),
-                                                            ('Мобильная разработка', 'Мобильная разработка'),
-                                                            ('Веб-дизайн', 'Веб-дизайн'),
-                                                            ('Плагины/утилиты', 'Плагины/утилиты'),
-                                                            ('Разработка игр','Разработка игр'),
-                                                            ('Гейм-дизайн','Гейм-дизайн')
-                                                            ])
+        ('Backend', '-- Специализация --'),
+        ('Backend', 'Backend'),
+        ('Frontend',
+         'Frontend'),
+        ('Мобильная разработка',
+         'Мобильная разработка'),
+        ('Веб-дизайн',
+         'Веб-дизайн'),
+        ('Плагины/утилиты',
+         'Плагины/утилиты'),
+        ('Разработка игр', 'Разработка игр'),
+        ('Гейм-дизайн', 'Гейм-дизайн')
+    ])
     expirience = RadioField('Опыт', choices=[
         ('Junior', 'Junior'),
         ('Middle', 'Middle'),
@@ -60,37 +70,93 @@ class RegistrationForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired('Пустое поле'), Email(message='Неправильный email'), Length(min=4, max=100, message='Неверная длинна email')])
-    password = PasswordField('Пароль', validators=[DataRequired(message='Пустое поле'), Length(min=4, max=100, message='Неверная длинна пароля')])
+    email = StringField('Email', validators=[DataRequired('Пустое поле'), Email(
+        message='Неправильный email'), Length(min=4, max=100, message='Неверная длинна email')])
+    password = PasswordField('Пароль', validators=[DataRequired(
+        message='Пустое поле'), Length(min=4, max=100, message='Неверная длинна пароля')])
     remember = BooleanField('Запомнить меня')
     submit = SubmitField('Войти')
 
+
 class EditForm(FlaskForm):
     avatar = FileField('Аватар', validators=[Extensions(ext=['png'])])
-    name = StringField('Имя', validators=[DataRequired('Пустое поле'), Length(min=4, max=100, message='Неверная длинна имени')])
-    github = StringField('Имя на github', validators=[DataRequired('Пустое поле'), Length(min=4, max=100, message='Неверная длинна имени'), Github()])
-    email = StringField('Email', validators=[DataRequired('Пустое поле'), Email(message='Неправильный email'), Length(min=4, max=100, message='Неверная длинна email')])
-    password = PasswordField('Пароль', validators=[Length(min=0, max=100, message='Неверная длинна пароля')])
+    name = StringField('Имя', validators=[DataRequired('Пустое поле'), Length(
+        min=4, max=100, message='Неверная длинна имени')])
+    github = StringField('Имя на github', validators=[DataRequired(
+        'Пустое поле'), Length(min=4, max=100, message='Неверная длинна имени'), Github()])
+    bio = TextAreaField('О себе')
+    email = StringField('Email', validators=[DataRequired('Пустое поле'), Email(
+        message='Неправильный email'), Length(min=4, max=100, message='Неверная длинна email')])
+    password = PasswordField('Пароль', validators=[Length(
+        min=0, max=100, message='Неверная длинна пароля')])
     specialization = SelectField('Специализация', choices=[
-                                                            ('-', '-'),
-                                                            ('Backend', 'Backend'),
-                                                            ('Frontend', 'Frontend'),
-                                                            ('Мобильная разработка', 'Мобильная разработка'),
-                                                            ('Веб-дизайн', 'Веб-дизайн'),
-                                                            ('Плагины/утилиты', 'Плагины/утилиты'),
-                                                            ('Разработка игр','Разработка игр'),
-                                                            ('Гейм-дизайн','Гейм-дизайн')
-                                                            ])
+        ('-', '-'),
+        ('Backend', 'Backend'),
+        ('Frontend',
+         'Frontend'),
+        ('Мобильная разработка',
+         'Мобильная разработка'),
+        ('Веб-дизайн',
+         'Веб-дизайн'),
+        ('Плагины/утилиты',
+         'Плагины/утилиты'),
+        ('Разработка игр', 'Разработка игр'),
+        ('Гейм-дизайн', 'Гейм-дизайн')
+    ])
     expirience = RadioField('Опыт', choices=[
         ('Junior', 'Junior'),
         ('Middle', 'Middle'),
         ('Senior', 'Senior')
     ])
-    stack = StringField('Стек (разделяя запятой)', validators=[Length(min=0, max=100, message='Неправильная длинна стека')])
-    submit = SubmitField('Зарегистрироваться')
-    
-class CreateGroup(FlaskForm):
-    name = StringField('Название', validators=[DataRequired('Пустое поле'), Length(min=0, max=150, message='Неверная длинна названия')])
-    description = TextAreaField('Описание группы', validators=[DataRequired('Пустое поле')])
+    stack = StringField('Стек (разделяя запятой)', validators=[
+                        Length(min=0, max=100, message='Неправильная длинна стека')])
+    submit = SubmitField('Изменить')
+
+
+class CreateTeamForm(FlaskForm):
+    name = StringField('Название', validators=[DataRequired('Пустое поле'), Length(
+        min=0, max=150, message='Неверная длинна названия')])
+    description = TextAreaField('Описание группы', validators=[
+                                DataRequired('Пустое поле')])
     github = SelectField('Репозиторий')
+    product_type = SelectField('Тип продукта', choices=[
+        ('Без типа', 'Без типа'),
+        ('Веб-сайт', 'Веб-сайт'),
+        ('Игра', 'Игра'),
+        ('Мобильное приложение',
+         'Мобильное приложение'),
+        ('Плагин/Утилита',
+         'Плагин/Утилита'),
+        ('Другое', 'Другое')
+    ])
     submit = SubmitField('Создать')
+
+
+class EditTeamForm(FlaskForm):
+    name = StringField('Название', validators=[DataRequired('Пустое поле'), Length(
+        min=0, max=100, message='Неверная длинна названия')])
+    description = TextAreaField('Описание группы', validators=[
+                                DataRequired('Пустое поле')])
+    github = SelectField('Репозиторий')
+    product_type = SelectField('Тип продукта', choices=[
+        ('-', '-'),
+        ('Без типа', 'Без типа'),
+        ('Веб-сайт', 'Веб-сайт'),
+        ('Игра', 'Игра'),
+        ('Мобильное приложение',
+         'Мобильное приложение'),
+        ('Плагин/Утилита',
+         'Плагин/Утилита'),
+        ('Другое', 'Другое')
+    ])
+    state = SelectField('Статус', choices=[
+        ('-', '-'),
+        ('Создана', 'Создана'),
+        ('Набор участников',
+         'Набор участников'),
+        ('Проектирование', 'Проектирование'),
+        ('Разработка', 'Разработка'),
+        ('Завершено', 'Завершено'),
+        ('Закрыто', 'Закрыто')
+    ])
+    submit = SubmitField('Изменить')

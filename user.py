@@ -15,9 +15,15 @@ class User(UserMixin):
             return self.user.id
         else:
             return 'guest'
-        
+
     def get_github(self):
         if self.user is not None:
             return self.user.github
         else:
             return 'guest'
+
+    def get_teams_names(self):
+        if self.user is not None:
+            return [team.info.github for team in self.user.lead_teams]
+        else:
+            return []

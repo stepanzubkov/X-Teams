@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+{{ super() }}
+<h1>Изменить группу</h1>
+<form action='/editteam/{{team.github}}' method='post' class='editteam'>
+    {{ form.hidden_tag() }}
+    {% for field in form if field.name not in ['csrf_token', 'submit'] %}
+        {{field.label}}
+        {% if field.errors %}
+            {% if field.name in ['state', 'product_type', 'github'] %}
+                <p>{{ field() }} <span style='color: red;'>{{field.errors[0]}}</span></p>
+            {% elif field.name=='description' %}
+                <p><textarea name="description" id="description" class='invalid'>{{team.descripton}}</textarea> <span style='color: red;'>{{field.errors[0]}}</span></p>
+            {% else %}
+                <p>{{ field(class='invalid', value=getattr(team, field.name, 0)) }} <span style='color: red;'>{{field.errors[0]}}</span></p>
+            {% endif %}
+
+        {% else %}
+            {% if field.name in ['state', 'product_type', 'github'] %}
+                <p>{{ field() }}</p>
+            {% elif field.name=='description' %}
+                <p><textarea name="description" id="description" class='normal'>{{team.descripton}}</textarea></p>
+            {% else %}
+                <p>{{ field(class='normal', value=getattr(team, field.name, 0)) }}</p>
+            {% endif %}
+
+        {% endif %}
+    {% endfor %}
+    <p>{{ form.submit() }}
+</form>
+{% endblock %}

@@ -1,6 +1,6 @@
 
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate, migrate
+from flask_migrate import Migrate
 from sqlalchemy import MetaData
 
 
@@ -24,13 +24,14 @@ class Users(db.Model):
     password = db.Column(db.String(1000), nullable=False)
     specialization = db.Column(db.String(100), nullable=False)
     expirience = db.Column(db.String(20), nullable=False)
+    bio = db.Column(db.Text, nullable=True)
     avatar = db.Column(db.LargeBinary, nullable=True)
     github = db.Column(db.String(100), nullable=False)
     stack = db.relationship('Stacks', backref='users',
                             lazy='dynamic', uselist=True)
     teams = db.relationship('Members', backref='user',
                             lazy='dynamic', uselist=True)
-    lead_groups = db.relationship('Leaders', backref='user',
+    lead_teams = db.relationship('Leaders', backref='user',
                                 lazy='dynamic', uselist=True)
 
 
@@ -38,9 +39,10 @@ class Teams(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False)
     descripton = db.Column(db.Text, nullable=False)
+    product_type = db.Column(db.String(100), nullable=False)
     state = db.Column(db.String(50), nullable=False)
     github = db.Column(db.String(200), nullable=False)
-    users = db.relationship('Members', backref='info',
+    members = db.relationship('Members', backref='info',
                             lazy='dynamic', uselist=True)
     leader = db.relationship('Leaders', backref='info',
                             uselist=False)

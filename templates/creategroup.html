@@ -2,9 +2,9 @@
 {% block content %}
 {{ super() }}
 <h1>Новая группа</h1>
-<form action='/creategroup' method='post' class='creategroup'>
+<form action='/createteam' method='post' class='createteam'>
     {{ form.hidden_tag() }}
-    {% for field in form if field.name not in ['csrf_token', 'submit', 'github'] %}
+    {% for field in form if field.name not in ['csrf_token', 'submit', 'github', 'product_type'] %}
         {% if field.errors %}
             <p>{{ field(class='invalid', placeholder=field.label.text) }}
                 {{ field.errors[0] }}</p>
@@ -14,6 +14,8 @@
     {% endfor %}
     <p>{{ form.github.label }}
     <p>{{ form.github() }}
+    <p>{{ form.product_type.label }}
+    <p>{{ form.product_type() }}
     <p>{{ form.submit() }}
 </form>
 {% endblock %}

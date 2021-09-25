@@ -9,16 +9,25 @@
     {{ form.hidden_tag() }}
     {% for field in form if field.name not in ['csrf_token', 'submit'] %}
         {% if field.errors %}
-            <p>{{ field(class='invalid', placeholder=field.label.text) }}
-                {{ field.errors[0] }}</p>
+            {% if field.name=='expirience' %}
+            <p>
+                {% for subfield in field %}
+                    {{ subfield }}
+                    {{ subfield.label }}
+                {% endfor %}
+                <span style='color: red;'>{{field.errors[0]}}</span>
+            </p>
+            {% else %}
+                <p>{{ field(class='error', placeholder=field.label.text) }} <span style='color: red;'>{{field.errors[0]}}</span></p>
+            {% endif %}
         {% else %}
             {% if field.name=='expirience' %}
             <p>
                     {% for subfield in field %}
-                    {{ subfield }}
-                    {{ subfield.label }}
+                        {{ subfield }}
+                        {{ subfield.label }}
                     {% endfor %}
-                </p>
+            </p>
             {% else %}
                 <p>{{ field(class='normal', placeholder=field.label.text) }}
             {% endif %}

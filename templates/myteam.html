@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+{{ super() }}
+<h1>Группа</h1>
+<h2>
+    {{team.name}}
+    <a href='https://github.com/{{team.leader.user.github}}/{{team.github}}' target='_blank'><img src='https://wodensoft.co.uk/wp-content/uploads/2020/05/Github.png' alt='github' style='display: inline;' width='20' height='20'></a>
+</h2>
+<p>{{team.descripton}}</p>
+<p>Статус: {{team.state}}</p>
+<p><a href="/editteam/{{team.github}}">Изменить группу</a></p>
+<p style='color: red;'>Лидер</p>
+<hr>
+<p>
+    <img src='/image/{{team.leader.user.github}}' alt='Аватар' width='20' height='20' style='display: inline;'>
+    <a href="/user/{{team.leader.user.github}}">{{team.leader.user.name}}</a>
+</p>
+<hr>
+<p>Участники</p>
+{% for member in team.members %}
+    <hr>
+    <p>
+        <img src='/image/{{member.user.github}}' alt='Аватар' width='20' height='20' style='display: inline;'>
+        <a href="/user/{{member.user.github}}">{{member.user.name}}</a>
+    </p>
+{% endfor %}
+<hr>
+{% endblock %}
