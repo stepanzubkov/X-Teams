@@ -8,6 +8,9 @@
 </h2>
 <p>{{team.descripton}}</p>
 <p>Статус: {{team.state}}</p>
+{% if current_user.get_github() not in members_githubs %}
+    <a href="/team-request/{{team.github}}">Отправить заявку</a>
+{% endif %}
 <p style='color: red;'>Лидер</p>
 <hr>
 <p>

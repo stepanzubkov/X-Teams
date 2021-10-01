@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+{{ super() }}
+<h1>Заявки в группу</h1>
+{% for req in reqs if req.state == 'Активна' %}
+    <hr>
+    <p>
+        <a href='/user/{{req.user.github}}'>{{req.user.name}}</a>,
+        <b>{{req.user.expirience}}</b>,
+        {{req.user.specialization}}
+    </p>
+    <h3>{{req.name}}</h3>
+    <p>{{req.text}}</p>
+    <p>
+        <a href="{{url_for('accept', team=req.team.id, user=req.user.id, request=req.id)}}">Принять</a>
+        <a href="{{url_for('reject', team=req.team.id, request=req.id)}}" style="color: red;">Отклонить</a>
+    </p>
+{% endfor %}
+<hr>
+{% endblock %}

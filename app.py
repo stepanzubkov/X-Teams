@@ -1,5 +1,6 @@
 # Импорты Flask и расширений
-from flask import Flask, render_template, flash, make_response, url_for, redirect, request
+import re
+from flask import Flask, render_template, flash, make_response, url_for, redirect, request, abort
 from flask_login import login_required, login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 # Импорты других библиотек
@@ -7,8 +8,8 @@ import os
 from github3api import GitHubAPI
 
 # Импорты собственных файлов
-from db import db, migrate, Users, Teams, Members, Leaders, Stacks
-from forms import CreateTeamForm, EditForm, EditTeamForm, RegistrationForm, LoginForm
+from db import TeamNotifications, db, migrate, Users, Teams, Members, Leaders, Stacks
+from forms import CreateTeamForm, EditForm, EditTeamForm, RegistrationForm, LoginForm, TeamRequestForm
 from login import manager, load_user
 from user import User
 
@@ -105,9 +106,9 @@ def logout():
     return redirect(url_for('login'))
 
 
-@app.route('/edit', methods=['GET', 'POST'])
+@app.route('/edit-profile', methods=['GET', 'POST'])
 @login_required
-def edit():
+def edit_profile():
     form = EditForm()
     user = Users.query.get(current_user.get_id())
     stack_text = ''
@@ -146,12 +147,12 @@ def edit():
             print(e)
             db.session.rollback()
         return redirect(url_for('profile', github_name=current_user.get_github()))
-    return render_template('edit.html', form=form, current_user=current_user, user=user, stack_text=stack_text, getattr=getattr)
+    return render_template('edit-profile.html', form=form, current_user=current_user, user=user, stack_text=stack_text, getattr=getattr)
 
 
-@app.route('/createteam', methods=['POST', 'GET'])
+@app.route('/create-team', methods=['POST', 'GET'])
 @login_required
-def creategroup():
+def create_team():
     form = CreateTeamForm()
     form.github.choices = choices = [(repo['name'], repo['name']) for repo in client.get(
         f'/users/{current_user.get_github()}/repos', _get='all', _attributes=['name', 'full_name'])]
@@ -163,34 +164,36 @@ def creategroup():
             db.session.add(group)
             db.session.commit()
 
-            group_id = Teams.query.filter_by(name=group.name).first().id
+            group = Teams.query.filter_by(name=group.name).first()
 
-            leader = Leaders(team_id=group_id, leader_id=current_user.get_id())
-            member = Members(team_id=group_id, member_id=current_user.get_id())
+            leader = Leaders(team_id=group.id, leader_id=current_user.get_id())
+            member = Members(team_id=group.id, member_id=current_user.get_id())
 
             db.session.add_all([leader, member])
             db.session.commit()
 
-            redirect(url_for('index'))
+            return redirect(url_for('team', github_name=team.github))
         except:
             db.session.rollback()
 
-    return render_template('creategroup.html', current_user=current_user, form=form)
+    return render_template('create-team.html', current_user=current_user, form=form)
 
 
 @app.route('/team/<github_name>', methods=['GET'])
 @login_required
 def team(github_name):
     team = Teams.query.filter_by(github=github_name).first()
+    members_githubs = [member.user.github for member in team.members]
     if github_name in current_user.get_teams_names():
         return render_template('myteam.html', current_user=current_user, team=team)
-    return render_template('team.html', current_user=current_user, team=team)
+    return render_template('team.html', current_user=current_user, team=team, members_githubs=members_githubs)
 
 
-@app.route('/editteam/<github_name>', methods=['GET', 'POST'])
+@app.route('/edit-team/<github_name>', methods=['GET', 'POST'])
+@login_required
 def edit_team(github_name):
     if github_name not in current_user.get_teams_names():
-        return redirect(url_for('index'))
+        abort(404)
     team = Teams.query.filter_by(github=github_name).first()
     form = EditTeamForm()
     form.github.choices = [('-', '-')] + [(repo['name'], repo['name']) for repo in client.get(
@@ -211,8 +214,94 @@ def edit_team(github_name):
         except Exception as e:
             print(e)
             db.session.rollback()
-    return render_template('editteam.html', current_user=current_user,
+    return render_template('edit-team.html', current_user=current_user,
                            form=form, team=team, getattr=getattr)
+
+
+@app.route('/team-request/<github_name>', methods=['GET', 'POST'])
+@login_required
+def team_request(github_name):
+    if github_name in current_user.get_teams_names():
+        abort(404)
+    form = TeamRequestForm()
+    team = Teams.query.filter_by(github=github_name).first()
+    if current_user.get_github() in [member.user.github for member in team.members]:
+        abort(404)
+    if form.validate_on_submit():
+        try:
+            notification = TeamNotifications(
+                name=form.heading.data, text=form.comment.data, team_id=team.id, _from=current_user.get_id(), state='Активна')
+
+            db.session.add(notification)
+            db.session.commit()
+
+            return redirect(url_for('requests'))
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+    return render_template('team-request.html', current_user=current_user, form=form, team=team)
+
+
+@app.route('/user-requests', methods=['GET'])
+@login_required
+def user_requests():
+    reqs = Users.query.get(current_user.get_id()).sended_notifications
+    return render_template('user-requests.html', current_user=current_user, reqs=reqs)
+
+
+@app.route('/team-requests/<github_name>', methods=['GET'])
+@login_required
+def team_requests(github_name):
+    if github_name not in current_user.get_teams_names():
+        abort(404)
+    reqs = Teams.query.filter_by(github=github_name).first().notifications
+    return render_template('team-requests.html',  current_user=current_user, reqs=reqs)
+
+
+@app.route('/accept', methods=['GET'])
+@login_required
+def accept():
+    try:
+        team_id = int(request.args.get('team', None))
+        request_id = int(request.args.get('request', None))
+        user_id = int(request.args.get('user', None))
+    except:
+        abort(404)
+    if team_id is not None and request_id is not None and user_id is not None:
+        try:
+            req = TeamNotifications.query.filter_by(
+                id=int(request_id)).first()
+            req.state = 'Принята'
+
+            member = Members(team_id=team_id, member_id=user_id)
+
+            db.session.add(member)
+            db.session.commit()
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+    return redirect(url_for('team_requests', github_name=Teams.query.get(team_id).github))
+
+
+@app.route('/reject', methods=['GET'])
+@login_required
+def reject():
+    try:
+        team_id = int(request.args.get('team', None))
+        request_id = int(request.args.get('request', None))
+    except:
+        abort(404)
+    if team_id is not None and request_id is not None:
+        try:
+            req = TeamNotifications.query.filter_by(
+                id=int(request_id)).first()
+            req.state = 'Отклонена'
+
+            db.session.commit()
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+    return redirect(url_for('team_requests', github_name=Teams.query.get(team_id).github))
 
 
 if __name__ == "__main__":

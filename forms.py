@@ -160,3 +160,10 @@ class EditTeamForm(FlaskForm):
         ('Закрыто', 'Закрыто')
     ])
     submit = SubmitField('Изменить')
+
+
+class TeamRequestForm(FlaskForm):
+    heading = StringField('Заголовок', validators=[DataRequired(
+        'Пустое поле'), Length(min=0, max=100, message='Неправильная длина')])
+    comment = TextAreaField('Комментарий', validators=[DataRequired()])
+    submit = SubmitField('Отправить')

@@ -2,6 +2,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy import MetaData
+from sqlalchemy.orm import backref
 
 
 convention = {
@@ -32,7 +33,9 @@ class Users(db.Model):
     teams = db.relationship('Members', backref='user',
                             lazy='dynamic', uselist=True)
     lead_teams = db.relationship('Leaders', backref='user',
-                                lazy='dynamic', uselist=True)
+                                 lazy='dynamic', uselist=True)
+    sended_notifications = db.relationship('TeamNotifications', backref='user',
+                                           lazy='dynamic', uselist=True)
 
 
 class Teams(db.Model):
@@ -43,9 +46,11 @@ class Teams(db.Model):
     state = db.Column(db.String(50), nullable=False)
     github = db.Column(db.String(200), nullable=False)
     members = db.relationship('Members', backref='info',
-                            lazy='dynamic', uselist=True)
+                              lazy='dynamic', uselist=True)
     leader = db.relationship('Leaders', backref='info',
-                            uselist=False)
+                             uselist=False)
+    notifications = db.relationship('TeamNotifications', backref='team',
+                                    lazy='dynamic', uselist=True)
 
 
 class Members(db.Model):
@@ -58,8 +63,18 @@ class Leaders(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     team_id = db.Column(db.Integer, db.ForeignKey('teams.id'))
     leader_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    
+
+
 class Stacks(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     name = db.Column(db.String(100), nullable=False)
+
+
+class TeamNotifications(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    text = db.Column(db.Text, nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'))
+    _from = db.Column(db.Integer, db.ForeignKey('users.id'))
+    state = db.Column(db.String(50), nullable=False)

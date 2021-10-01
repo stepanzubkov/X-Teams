@@ -2,7 +2,7 @@
 {% block content %}
 {{ super() }}
 <h1>Изменить группу</h1>
-<form action='/editteam/{{team.github}}' method='post' class='editteam'>
+<form action='/edit-team/{{team.github}}' method='post' class='edit-team'>
     {{ form.hidden_tag() }}
     {% for field in form if field.name not in ['csrf_token', 'submit'] %}
         {{field.label}}

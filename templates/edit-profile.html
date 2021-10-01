@@ -2,7 +2,7 @@
 {% block content %}
 {{ super() }}
 <h1>Изменить профиль</h1>
-<form action='/edit' method='post' class='edit' enctype="multipart/form-data">
+<form action='/edit-profile' method='post' class='edit-profile' enctype="multipart/form-data">
     {{ form.hidden_tag() }}
     {% for field in form if field.name not in ['csrf_token', 'submit', 'stack'] %}
         {{field.label}}

@@ -4,9 +4,11 @@
 <h1>Профиль</h1>
 <img src='/image/{{user.github}}' alt='Аватар' width='200' height='200'>
 <br>
-<a href='/edit'>Изменить профиль</a>
+<a href='/edit-profile'>Изменить профиль</a>
 <br>
 <a style='color: red;' href='/logout'>Выйти из аккаунта</a>
+<br>
+<a href="/user-requests">Заявки</a>
 <h2>{{user.name}} <a href="https://github.com/{{user.github}}" target='_blank'><img src='https://wodensoft.co.uk/wp-content/uploads/2020/05/Github.png' alt='github' style='display: inline;' width='20' height='20'></a></h2>
 <p><b>{{user.specialization}}</b>, {{user.expirience}}</p>
 {% if user.bio %}
