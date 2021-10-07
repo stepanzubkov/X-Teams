@@ -36,6 +36,8 @@ class Users(db.Model):
                                  lazy='dynamic', uselist=True)
     sended_notifications = db.relationship('TeamNotifications', backref='user',
                                            lazy='dynamic', uselist=True)
+    notifications = db.relationship('UserNotifications', backref='user',
+                                    lazy='dynamic', uselist=True)
 
 
 class Teams(db.Model):
@@ -51,6 +53,8 @@ class Teams(db.Model):
                              uselist=False)
     notifications = db.relationship('TeamNotifications', backref='team',
                                     lazy='dynamic', uselist=True)
+    sended_notifications = db.relationship('UserNotifications', backref='team',
+                                           lazy='dynamic', uselist=True)
 
 
 class Members(db.Model):
@@ -77,4 +81,13 @@ class TeamNotifications(db.Model):
     text = db.Column(db.Text, nullable=False)
     team_id = db.Column(db.Integer, db.ForeignKey('teams.id'))
     _from = db.Column(db.Integer, db.ForeignKey('users.id'))
+    state = db.Column(db.String(50), nullable=False)
+
+
+class UserNotifications(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    text = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    _from = db.Column(db.Integer, db.ForeignKey('teams.id'))
     state = db.Column(db.String(50), nullable=False)

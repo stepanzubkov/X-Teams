@@ -167,3 +167,11 @@ class TeamRequestForm(FlaskForm):
         'Пустое поле'), Length(min=0, max=100, message='Неправильная длина')])
     comment = TextAreaField('Комментарий', validators=[DataRequired()])
     submit = SubmitField('Отправить')
+
+
+class InviteForm(FlaskForm):
+    heading = StringField('Заголовок', validators=[DataRequired(
+        'Пустое поле'), Length(min=0, max=100, message='Неправильная длина')])
+    comment = TextAreaField('Комментарий', validators=[DataRequired()])
+    team = SelectField('Группа')
+    submit = SubmitField('Отправить')

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+{{ super() }}
+<h1>Приглашения в группы</h1>
+{% for req in reqs if req.state == 'Активна' %}
+    <hr>
+    <p>
+        <a href='/team/{{req.team.github}}'>{{req.team.name}}</a>,
+        Лидер: {{req.team.leader.user.name}}
+    </p>
+    <h3>{{req.name}}</h3>
+    <p>{{req.text}}</p>
+    <p>
+        <a href="{{url_for('accept_invite', team=req.team.id, user=req.user.id, request=req.id)}}">Принять</a>
+        <a href="{{url_for('reject_invite', team=req.team.id, request=req.id, user=req.user.id)}}" style="color: red;">Отклонить</a>
+    </p>
+{% endfor %}
+<hr>
+{% endblock %}

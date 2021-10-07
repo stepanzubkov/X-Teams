@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+{{ super() }}
+<h1>Приглашения группы</h1>
+{% if reqs[0] %}
+    {% for req in reqs %}
+        <hr>  
+        <h3>{{req.name}}</h3>
+        {% if req.state == 'Активна' %}
+            <p style='color: blue;'>{{req.state}}</p>
+        {% elif req.state == 'Принята' %}
+            <p style='color: green;'>{{req.state}}</p>
+        {% else %}
+            <p style='color: red;'>{{req.state}}</p>
+        {% endif %}
+    {% endfor %}
+    <hr>
+{% else %}
+    <p>У вас нет приглашений</p>
+{% endif %}
+{% endblock %}

@@ -5,6 +5,9 @@
 <img src='/image/{{user.github}}' alt='Аватар' width='200' height='200'>
 <br>
 <h2>{{user.name}} <a href="https://github.com/{{user.github}}" target='_blank'><img src='https://wodensoft.co.uk/wp-content/uploads/2020/05/Github.png' alt='github' style='display: inline;' width='20' height='20'></a></h2>
+{% if current_user.get_teams_names() != [] %}
+    <p><a href="/invite/{{user.github}}">Пригласить</a></p>
+{% endif %}
 <p><b>{{user.specialization}}</b>, {{user.expirience}}</p>
 {% if user.stack[0] %}
     Стек: 

@@ -1,5 +1,4 @@
 # Importing flask and extensions
-import re
 from flask import Flask, render_template, flash, make_response, url_for, redirect, request, abort
 from flask_login import login_required, login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,14 +7,13 @@ import os
 from github3api import GitHubAPI
 
 # Importing my files
-from db import TeamNotifications, db, migrate, Users, Teams, Members, Leaders, Stacks
-from forms import CreateTeamForm, EditForm, EditTeamForm, RegistrationForm, LoginForm, TeamRequestForm
+from db import TeamNotifications, db, migrate, Users, Teams, Members, Leaders, Stacks, UserNotifications
+from forms import CreateTeamForm, EditForm, EditTeamForm, InviteForm, RegistrationForm, LoginForm, TeamRequestForm
 from login import manager, load_user
 from user import User
 
 # Client to interact with api github
 client = GitHubAPI()
-
 # Creating app and importing config
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -405,6 +403,124 @@ def reject():
             db.session.rollback()
     # Return redirect to team requests list page
     return redirect(url_for('team_requests', github_name=Teams.query.get(team_id).github))
+
+# Invite user page
+
+
+@app.route('/invite/<github_name>', methods=['GET', 'POST'])
+@login_required
+def invite(github_name):
+    # Create form
+    form = InviteForm()
+    # Get user data
+    user = Users.query.filter_by(github=github_name).first()
+    # Add choices team field
+    form.team.choices = [(name, name)
+                         for name in current_user.get_teams_names()]
+    if form.validate_on_submit():
+        try:
+            # Add team notification to DB
+            notification = UserNotifications(
+                name=form.heading.data, text=form.comment.data, user_id=user.id, _from=Teams.query.filter_by(github=form.team.data).first().id, state='Активна')
+
+            db.session.add(notification)
+            db.session.commit()
+            # Return redirect to user requests list page
+            return redirect(url_for('team_invites', github_name=github_name))
+        # Rollback if any occurs
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+    # Return user invite page
+    return render_template('invite.html', current_user=current_user, form=form, user=user)
+
+# Team invites list page
+
+
+@app.route('/team-invites/<github_name>', methods=['GET'])
+@login_required
+def team_invites(github_name):
+    # If this team is not yours abort error 404
+    if github_name not in current_user.get_teams_names():
+        abort(404)
+    # Taking invites data from DB
+    reqs = Teams.query.filter_by(
+        github=github_name).first().sended_notifications
+    # Return team invites list page
+    return render_template('team-invites.html', current_user=current_user, reqs=reqs)
+
+# User invites list page
+
+
+@app.route('/user-invites', methods=['GET'])
+@login_required
+def user_invites():
+    # Taking invites data from DB
+    reqs = Users.query.get(current_user.get_id()).notifications
+    # Return user invites list page
+    return render_template('user-invites.html',  current_user=current_user, reqs=reqs)
+
+# Accept invite function
+
+
+@app.route('/accept-invite', methods=['GET'])
+@login_required
+def accept_invite():
+    try:
+        # Get data from url
+        team_id = int(request.args.get('team', None))
+        request_id = int(request.args.get('request', None))
+        user_id = int(request.args.get('user', None))
+        assert user_id == current_user.get_id()
+    # Abort if data is wrong
+    except:
+        abort(404)
+    if team_id is not None and request_id is not None and user_id is not None:
+        try:
+            # Change invite state and add user to team's members
+            req = UserNotifications.query.filter_by(
+                id=int(request_id)).first()
+            req.state = 'Принята'
+
+            member = Members(team_id=team_id, member_id=user_id)
+
+            db.session.add(member)
+            db.session.commit()
+        # Rollback if any occurs
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+    return redirect(url_for('user_invites'))
+
+# Reject invite function
+
+
+@app.route('/reject-invite', methods=['GET'])
+@login_required
+def reject_invite():
+    try:
+        # Get data from url
+        team_id = int(request.args.get('team', None))
+        request_id = int(request.args.get('request', None))
+        user_id = int(request.args.get('user', None))
+        assert user_id == current_user.get_id()
+    # Abort if data is wrong
+    except:
+        abort(404)
+    if team_id is not None and request_id is not None:
+        try:
+            # Change request state
+            req = UserNotifications.query.filter_by(
+                id=request_id).first()
+            req.state = 'Отклонена'
+
+            db.session.commit()
+        # Rollback if any occurs
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+    # Return redirect to user invites list page
+    return redirect(url_for('user_invites'))
 
 
 # Run app
