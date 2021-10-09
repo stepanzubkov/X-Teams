@@ -175,3 +175,28 @@ class InviteForm(FlaskForm):
     comment = TextAreaField('Комментарий', validators=[DataRequired()])
     team = SelectField('Группа')
     submit = SubmitField('Отправить')
+
+
+class SearchUserForm(FlaskForm):
+    specialization = SelectField('Специализация', choices=[
+        ('-', '-'),
+        ('Backend', 'Backend'),
+        ('Frontend',
+         'Frontend'),
+        ('Мобильная разработка',
+         'Мобильная разработка'),
+        ('Веб-дизайн',
+         'Веб-дизайн'),
+        ('Плагины/утилиты',
+         'Плагины/утилиты'),
+        ('Разработка игр', 'Разработка игр'),
+        ('Гейм-дизайн', 'Гейм-дизайн')
+    ])
+    expirience = SelectField('Опыт', choices=[
+        ('-', '-'),
+        ('Junior', 'Junior'),
+        ('Middle', 'Middle'),
+        ('Senior', 'Senior')
+    ])
+    stack = StringField('Стек (через запятую)')
+    submit = SubmitField('Применить')

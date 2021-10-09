@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+{{ super() }}
+<h1>Поиск пользователей</h1>
+<form action="/users" method="post" class='users'>
+    {{ form.hidden_tag() }}
+    {% for field in form if field.name not in ['csrf_token', 'submit'] %}
+        <span style='float: left;'>
+            <p>{{ field.label }}</p>
+            <p>{{ field() }}</p>
+        </span>
+    {% endfor %}
+    <p style='clear: both;'>{{ form.submit() }}</p>
+</form>
+{% for user in users %}
+    <hr>
+    <img src='/image/{{user.github}}' alt='Аватар' width='30' height='30' style='display; inline;'>
+    <b><a href="/user/{{user.github}}">{{ user.name }}</a></b>
+    <p><b>{{ user.specialization }}</b>, {{ user.expirience }}</p>
+{% endfor %}
+<hr>
+{% endblock %}

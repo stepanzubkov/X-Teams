@@ -1,14 +1,16 @@
 # Importing flask and extensions
+from operator import itemgetter
 from flask import Flask, render_template, flash, make_response, url_for, redirect, request, abort
 from flask_login import login_required, login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 # Importing other libraries
 import os
 from github3api import GitHubAPI
+from fuzzywuzzy import fuzz
 
 # Importing my files
 from db import TeamNotifications, db, migrate, Users, Teams, Members, Leaders, Stacks, UserNotifications
-from forms import CreateTeamForm, EditForm, EditTeamForm, InviteForm, RegistrationForm, LoginForm, TeamRequestForm
+from forms import CreateTeamForm, EditForm, EditTeamForm, InviteForm, RegistrationForm, LoginForm, TeamRequestForm, SearchUserForm
 from login import manager, load_user
 from user import User
 
@@ -521,6 +523,27 @@ def reject_invite():
             db.session.rollback()
     # Return redirect to user invites list page
     return redirect(url_for('user_invites'))
+
+# Users search page
+
+
+@app.route('/users', methods=['GET', 'POST'])
+def search_users():
+    # Create form
+    form = SearchUserForm()
+    # Get data all users if request.method = GET
+    users = Users.query.all()
+    # POST request
+    if form.validate_on_submit():
+        # Get users filtered by expirience, specialization, stack
+        users = Users.query.filter(Users.expirience.like(form.expirience.data if form.expirience.data != '-' else '%'),
+                                   Users.specialization.like(form.specialization.data if form.specialization.data != '-' else '%'))
+        users = list(map(lambda i: (fuzz.ratio(
+            str([x.name for x in i.stack]), str(form.stack.data.split(','))), i), users))
+        users = list(map(lambda i: i[1], sorted(
+            users, key=itemgetter(0), reverse=True)))
+    # Return users search page
+    return render_template('users.html', current_user=current_user, form=form, users=users)
 
 
 # Run app
