@@ -10,7 +10,7 @@ from fuzzywuzzy import fuzz
 
 # Importing my files
 from db import TeamNotifications, db, migrate, Users, Teams, Members, Leaders, Stacks, UserNotifications
-from forms import CreateTeamForm, EditForm, EditTeamForm, InviteForm, RegistrationForm, LoginForm, TeamRequestForm, SearchUserForm
+from forms import CreateTeamForm, EditForm, EditTeamForm, InviteForm, RegistrationForm, LoginForm, SearchTeamForm, TeamRequestForm, SearchUserForm
 from login import manager, load_user
 from user import User
 
@@ -525,6 +525,7 @@ def reject_invite():
     return redirect(url_for('user_invites'))
 
 # Users search page
+# FIXME confirm form resubmission error
 
 
 @app.route('/users', methods=['GET', 'POST'])
@@ -544,6 +545,24 @@ def search_users():
             users, key=itemgetter(0), reverse=True)))
     # Return users search page
     return render_template('users.html', current_user=current_user, form=form, users=users)
+
+# Teams search page
+# FIXME confirm form resubmission error
+
+
+@app.route('/teams', methods=['GET', 'POST'])
+def search_teams():
+    # Create form
+    form = SearchTeamForm()
+    # Get data all teams if request.method = GET
+    teams = Teams.query.all()
+    # POST request
+    if form.validate_on_submit():
+        # Get teams filtered by product_type, state
+        teams = Teams.query.filter(Teams.product_type.like(form.product_type.data if form.product_type.data != '-' else '%'),
+                                   Teams.state.like(form.state.data if form.state.data != '-' else '%'))
+    # Return teams search page
+    return render_template('teams.html', current_user=current_user, form=form, teams=teams)
 
 
 # Run app

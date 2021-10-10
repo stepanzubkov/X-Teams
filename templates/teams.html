@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+{{ super() }}
+<h1>Поиск групп</h1>
+<form action="/teams" method="post" class='teams'>
+    {{ form.hidden_tag() }}
+    {% for field in form if field.name not in ['csrf_token', 'submit'] %}
+        <span style='float: left;'>
+            <p>{{ field.label }}</p>
+            <p>{{ field() }}</p>
+        </span>
+    {% endfor %}
+    <p style='clear: both;'>{{ form.submit() }}</p>
+</form>
+{% for team in teams %}
+    <hr>
+    <b><a href="/team/{{team.github}}">{{ team.name }}</a></b>
+    <p><b>{{ team.product_type }}</b>, {{ team.state }}</p>
+    <p>Лидер: <a href="/user/{{team.leader.user.github}}">{{ team.leader.user.name }}</a></p>
+{% endfor %}
+<hr>
+{% endblock %}
