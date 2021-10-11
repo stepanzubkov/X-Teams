@@ -2,7 +2,7 @@
 {% block content %}
 {{ super() }}
 <h1>Поиск групп</h1>
-<form action="/teams" method="post" class='teams'>
+<form action="/teams" method="get" class='teams'>
     {{ form.hidden_tag() }}
     {% for field in form if field.name not in ['csrf_token', 'submit'] %}
         <span style='float: left;'>

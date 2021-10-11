@@ -525,42 +525,32 @@ def reject_invite():
     return redirect(url_for('user_invites'))
 
 # Users search page
-# FIXME confirm form resubmission error
 
 
 @app.route('/users', methods=['GET', 'POST'])
 def search_users():
     # Create form
     form = SearchUserForm()
-    # Get data all users if request.method = GET
-    users = Users.query.all()
-    # POST request
-    if form.validate_on_submit():
-        # Get users filtered by expirience, specialization, stack
-        users = Users.query.filter(Users.expirience.like(form.expirience.data if form.expirience.data != '-' else '%'),
-                                   Users.specialization.like(form.specialization.data if form.specialization.data != '-' else '%'))
-        users = list(map(lambda i: (fuzz.ratio(
-            str([x.name for x in i.stack]), str(form.stack.data.split(','))), i), users))
-        users = list(map(lambda i: i[1], sorted(
-            users, key=itemgetter(0), reverse=True)))
+    # Get users filtered by expirience, specialization, stack
+    users = Users.query.filter(Users.expirience.like(str(request.args.get('expirience')) if str(request.args.get('expirience')) != '-' and str(request.args.get('expirience')) != 'None' else '%'),
+                               Users.specialization.like(str(request.args.get('specialization')) if str(request.args.get('specialization')) != '-' and str(request.args.get('specialization')) != 'None' else '%'))
+    users = list(map(lambda i: (fuzz.ratio(
+        str([x.name for x in i.stack]), str(request.args.get('stack')).split(',')), i), users))
+    users = list(map(lambda i: i[1], sorted(
+        users, key=itemgetter(0), reverse=True)))
     # Return users search page
     return render_template('users.html', current_user=current_user, form=form, users=users)
 
 # Teams search page
-# FIXME confirm form resubmission error
 
 
 @app.route('/teams', methods=['GET', 'POST'])
 def search_teams():
     # Create form
     form = SearchTeamForm()
-    # Get data all teams if request.method = GET
-    teams = Teams.query.all()
-    # POST request
-    if form.validate_on_submit():
-        # Get teams filtered by product_type, state
-        teams = Teams.query.filter(Teams.product_type.like(form.product_type.data if form.product_type.data != '-' else '%'),
-                                   Teams.state.like(form.state.data if form.state.data != '-' else '%'))
+    # Get teams filtered by product_type, state
+    teams = Teams.query.filter(Teams.product_type.like(str(request.args.get('product_type')) if str(request.args.get('product_type')) != '-' and str(request.args.get('product_type')) != 'None' else '%'),
+                               Teams.state.like(str(request.args.get('state')) if str(request.args.get('state')) != '-' and str(request.args.get('state')) != 'None' else '%'))
     # Return teams search page
     return render_template('teams.html', current_user=current_user, form=form, teams=teams)
 

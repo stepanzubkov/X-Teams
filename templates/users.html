@@ -2,7 +2,7 @@
 {% block content %}
 {{ super() }}
 <h1>Поиск пользователей</h1>
-<form action="/users" method="post" class='users'>
+<form action="/users" method="get" class='users'>
     {{ form.hidden_tag() }}
     {% for field in form if field.name not in ['csrf_token', 'submit'] %}
         <span style='float: left;'>
