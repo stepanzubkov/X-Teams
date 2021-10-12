@@ -90,7 +90,6 @@ class EditForm(FlaskForm):
     password = PasswordField('Пароль', validators=[Length(
         min=0, max=100, message='Неверная длинна пароля')])
     specialization = SelectField('Специализация', choices=[
-        ('-', '-'),
         ('Backend', 'Backend'),
         ('Frontend',
          'Frontend'),
@@ -139,7 +138,6 @@ class EditTeamForm(FlaskForm):
                                 DataRequired('Пустое поле')])
     github = SelectField('Репозиторий')
     product_type = SelectField('Тип продукта', choices=[
-        ('-', '-'),
         ('Без типа', 'Без типа'),
         ('Веб-сайт', 'Веб-сайт'),
         ('Игра', 'Игра'),
@@ -150,7 +148,6 @@ class EditTeamForm(FlaskForm):
         ('Другое', 'Другое')
     ])
     state = SelectField('Статус', choices=[
-        ('-', '-'),
         ('Создана', 'Создана'),
         ('Набор участников',
          'Набор участников'),

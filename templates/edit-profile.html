@@ -5,52 +5,42 @@
 <form action='/edit-profile' method='post' class='edit-profile' enctype="multipart/form-data">
     {{ form.hidden_tag() }}
     {% for field in form if field.name not in ['csrf_token', 'submit', 'stack'] %}
-        {{field.label}}
-        {% if field.errors %}
-            <p>{{ field(class='invalid', value=getattr(user, field.name, 0)) }}
-                {{ field.errors[0] }}</p>
+    {{field.label}}
+    {% if field.errors %}
+    <p>{{ field(class='invalid', value=getattr(user, field.name, 0)) }}
+        {{ field.errors[0] }}</p>
+    {% else %}
+    {% if field.name=='expirience' %}
+    <p>
+        {% for subfield in field %}
+        {% if subfield.label.text == user.expirience %}
+        {{ subfield(checked='checked') }}
+        {{ subfield.label }}
         {% else %}
-            {% if field.name=='expirience' %}
-            <p>
-                {% for subfield in field %}
-                    {% if subfield.label.text == user.expirience %}
-                        {{ subfield(checked='checked') }}
-                        {{ subfield.label }}
-                    {% else %} 
-                        {{ subfield() }}
-                        {{ subfield.label }}
-                    {% endif %}
-                {% endfor %}
-            </p>
-            {% elif field.name=='specialization' %}
-                <p><select name='specialization' id='specialization'>
-                {% for option in field %}
-                    {% if user.specialization == option.label.text %}
-                        {{ option() }}
-                    {% else %} 
-                        {{ option() }}
-                    {% endif %}
-                {% endfor %}
-                </select></p>
-                <br>
-            {% elif field.name == 'bio' %}
-                {% if user.bio %}
-                    <p><textarea name="bio" id="bio" class='normal'>{{user.bio}}</textarea></p>
-                {% else %}
-                    <p>{{ field(class='normal') }}</p>
-                {% endif %}
-            {% else %}
-                <p>{{ field(class='normal', value=getattr(user, field.name, 0)) }}</p>
-            {% endif %}
-
+        {{ subfield() }}
+        {{ subfield.label }}
         {% endif %}
+        {% endfor %}
+    </p>
+    {% elif field.name == 'bio' %}
+    {% if user.bio %}
+    <p><textarea name="bio" id="bio" class='normal'>{{user.bio}}</textarea></p>
+    {% else %}
+    <p>{{ field(class='normal') }}</p>
+    {% endif %}
+    {% else %}
+    <p>{{ field(class='normal', value=getattr(user, field.name, 0)) }}</p>
+    {% endif %}
+
+    {% endif %}
     {% endfor %}
     <p>
-    {% if form.stack.errors %}
-        {{ form.stack.label }} {{ form.stack(class='invalid', value=stack_text) }} <span style='color: red;'>{{field.errors[0]}}</span>
-    {% else %}
+        {% if form.stack.errors %}
+        {{ form.stack.label }} {{ form.stack(class='invalid', value=stack_text) }} <span
+            style='color: red;'>{{field.errors[0]}}</span>
+        {% else %}
         {{ form.stack.label }} {{ form.stack(class='normal', value=stack_text) }}
-    {% endif %}
+        {% endif %}
     </p>
     <p>{{ form.submit() }}
 </form>

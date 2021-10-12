@@ -147,10 +147,10 @@ def logout():
 @app.route('/edit-profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
-    # Create form
-    form = EditForm()
     # Selecting the data of the current user
     user = Users.query.get(current_user.get_id())
+    # Create form
+    form = EditForm(specialization=user.specialization)
     # Preparing the current user's technology stack for display
     stack_text = ''
     for i in user.stack:
@@ -172,10 +172,9 @@ def edit_profile():
             user.expirience = form.expirience.data
             user.github = form.github.data
             user.bio = form.bio.data
+            user.specialization = form.specialization.data
             if form.password.data is not None:
                 user.password = generate_password_hash(form.password.data)
-            if form.specialization.data != '-':
-                user.specialization = form.specialization.data
             if form.avatar.data:
                 user.avatar = request.files[form.avatar.name].read()
             if stack_names != form_names:
@@ -260,22 +259,20 @@ def edit_team(github_name):
     # Taking team data from the database
     team = Teams.query.filter_by(github=github_name).first()
     # Create form
-    form = EditTeamForm()
+    form = EditTeamForm(product_type=team.product_type,
+                        state=team.state, github=team.github)
     # Add choices to github repos
-    form.github.choices = [('-', '-')] + [(repo['name'], repo['name']) for repo in client.get(
+    form.github.choices = [(repo['name'], repo['name']) for repo in client.get(
         f'/users/{current_user.get_github()}/repos', _get='all', _attributes=['name', 'full_name'])]
     # POST request
     if form.validate_on_submit():
         try:
-            # Checking and sending team data to the database
+            # Sending team data to the database
             team.name = form.name.data
             team.descripton = form.description.data
-            if form.github.data != '-':
-                team.github = form.github.data
-            if form.state.data != '-':
-                team.state = form.state.data
-            if form.product_type.data != '-':
-                team.product_type = form.product_type.data
+            team.github = form.github.data
+            team.state = form.state.data
+            team.product_type = form.product_type.data
 
             db.session.commit()
             # Return redirect to the modified team

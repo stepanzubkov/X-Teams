@@ -16,9 +16,7 @@
             {% endif %}
 
         {% else %}
-            {% if field.name in ['state', 'product_type', 'github'] %}
-                <p>{{ field() }}</p>
-            {% elif field.name=='description' %}
+            {% if field.name=='description' %}
                 <p><textarea name="description" id="description" class='normal'>{{team.descripton}}</textarea></p>
             {% else %}
                 <p>{{ field(class='normal', value=getattr(team, field.name, 0)) }}</p>
