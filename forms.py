@@ -222,3 +222,19 @@ class SearchTeamForm(FlaskForm):
         ('Закрыто', 'Закрыто')
     ])
     submit = SubmitField('Применить')
+
+
+class NewTaskForm(FlaskForm):
+    name = StringField('Название', validators=[DataRequired(
+        "Пустое поле"), Length(min=0, max=50, message="Слишком длинное имя")])
+    text = TextAreaField('Текст', validators=[DataRequired('Пустое поле')])
+    type_ = SelectField('Тип задачи', choices=[
+        ('FIXME', 'FIXME'),
+        ('TODO', 'TODO'),
+        ('BUG', 'BUG'),
+        ('OPTIMIZE', 'OPTIMIZE'),
+        ('NOTE', 'NOTE')
+    ])
+    importance = SelectField('Важность', choices=[
+                             (i, i) for i in range(1, 101)])
+    submit = SubmitField('Создать')

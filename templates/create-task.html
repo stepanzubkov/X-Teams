@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+{{ super() }}
+<h1>Создать новую задачу</h1>
+<form action='/create-task/{{team.github}}' method='post' class='create-task'>
+    {{ form.hidden_tag() }}
+    {% for field in form if field.name not in ['csrf_token', 'submit', 'importance', 'type_'] %}
+        {% if field.errors %}
+            <p>{{ field(class='invalid', placeholder=field.label.text) }}
+                {{ field.errors[0] }}</p>
+        {% else %}
+                <p>{{ field(class='normal', placeholder=field.label.text) }}
+        {% endif %}
+    {% endfor %}
+    <p>{{ form.type_.label }}
+    <p>{{ form.type_() }}
+    <p>{{ form.importance.label }}
+    <p>{{ form.importance() }}
+    <p>{{ form.submit() }}
+</form>
+{% endblock %}

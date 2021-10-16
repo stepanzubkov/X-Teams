@@ -9,8 +9,8 @@ from github3api import GitHubAPI
 from fuzzywuzzy import fuzz
 
 # Importing my files
-from db import TeamNotifications, db, migrate, Users, Teams, Members, Leaders, Stacks, UserNotifications
-from forms import CreateTeamForm, EditForm, EditTeamForm, InviteForm, RegistrationForm, LoginForm, SearchTeamForm, TeamRequestForm, SearchUserForm
+from db import TeamNotifications, db, migrate, Users, Teams, Members, Leaders, Stacks, UserNotifications, Tasks
+from forms import CreateTeamForm, EditForm, EditTeamForm, InviteForm, NewTaskForm, RegistrationForm, LoginForm, SearchTeamForm, TeamRequestForm, SearchUserForm
 from login import manager, load_user
 from user import User
 
@@ -506,7 +506,7 @@ def reject_invite():
     # Abort if data is wrong
     except:
         abort(404)
-    if team_id is not None and request_id is not None:
+    if team_id is not None and request_id is not None and user_id is not None:
         try:
             # Change request state
             req = UserNotifications.query.filter_by(
@@ -550,6 +550,79 @@ def search_teams():
                                Teams.state.like(str(request.args.get('state')) if str(request.args.get('state')) != '-' and str(request.args.get('state')) != 'None' else '%'))
     # Return teams search page
     return render_template('teams.html', current_user=current_user, form=form, teams=teams)
+
+# Team tasks page
+
+
+@app.route('/team-tasks/<github_name>', methods=['GET'])
+def team_tasks(github_name):
+    # get team and tasks date from db
+    team = Teams.query.filter_by(github=github_name).first()
+    tasks = list(map(lambda i: i[1], sorted(
+        [(task.importance, task) for task in team.tasks], key=itemgetter(0), reverse=True)))
+    # Create members' github profiles list
+    members_githubs = [member.user.github for member in team.members]
+    # If this team is not your abort error 404
+    if current_user.get_github() not in members_githubs:
+        abort(404)
+    # Return team tasks page
+    return render_template('team-tasks.html', current_user=current_user, members_githubs=members_githubs, team=team, tasks=tasks)
+
+# Create team task page
+
+
+@app.route('/create-task/<github_name>', methods=['GET', 'POST'])
+def create_task(github_name):
+    # If you are in this team abort error 404
+    if github_name not in current_user.get_teams_names():
+        abort(404)
+    # Create form
+    form = NewTaskForm()
+    # Get team data from db
+    team = Teams.query.filter_by(github=github_name).first()
+    # POST request
+    if form.validate_on_submit():
+        try:
+            # Change tasks state and send to db
+            task = Tasks(team_id=team.id, name=form.name.data, text=form.text.data,
+                         _type=form.type_.data, state='Активна', importance=form.importance.data)
+
+            db.session.add(task)
+            db.session.commit()
+            # Redirect to the team tasks page
+            return redirect(url_for('team_tasks', github_name=team.github))
+        # Rollback if any occurs
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+    # Return create team task page
+    return render_template('create-task.html', current_user=current_user, form=form, team=team)
+
+# Complete task function
+
+
+@app.route('/complete', methods=['GET'])
+def complete():
+    try:
+        # Get data from url
+        task_id = int(request.args.get('task'))
+        team_name = request.args.get('team')
+        assert team_name in current_user.get_teams_names()
+    # Abort if data is wrong
+    except:
+        abort(404)
+    if task_id is not None:
+        try:
+            # Change task state
+            task = Tasks.query.get(task_id)
+            task.state = 'Завершена'
+            db.session.commit()
+            # Redirect to the team tasks page
+            return redirect(url_for('team_tasks', github_name=team_name))
+        # Rollback if any occurs
+        except Exception as e:
+            print(e)
+            db.session.rollback()
 
 
 # Run app

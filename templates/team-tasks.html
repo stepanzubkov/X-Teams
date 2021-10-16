@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+{{ super() }}
+<h1>Задачи группы</h1>
+{% if current_user.get_github() == team.leader.user.github %}
+    <a href="/create-task/{{team.github}}">Добавить новую +</a>
+{% endif %}
+{% if tasks[0] %}
+    {% for task in tasks if task.state != 'Завершена' %}
+        <hr>
+        <h3>
+            {{task.name}}
+            {% if team.github in current_user.get_teams_names() %}
+                <a href='{{url_for("complete", task=task.id, team=team.github)}}' style='font-size: 20px;'>&#128711;</a>
+            {% endif %}
+        </h3>
+        <p>{{task.text}}</p>
+        {% if task._type == 'FIXME' %}
+            <p style='color: green;'>{{task._type}}</p>
+        {% elif task._type == 'TODO' %}
+            <p style='color: purple;'>{{task._type}}</p>
+        {% elif task._type == 'BUG' %}
+            <p style='color: red;'>{{task._type}}</p>
+        {% elif task._type == 'OPTIMIZE' %}
+            <p style='color: orange;'>{{task._type}}</p>
+        {% else %}
+            <p style='color: blue;'>{{task._type}}</p>
+        {% endif %}
+    {% endfor %}
+    {% for task in tasks if task.state == 'Завершена' %}
+        <hr>
+        <h3>{{task.name}}</h3>
+        <h4>Завершена</h4>
+    {% endfor %}
+    <hr>
+{% else %}
+    <p>К сожалению, задач ещё нет</p>
+{% endif %}
+{% endblock %}
